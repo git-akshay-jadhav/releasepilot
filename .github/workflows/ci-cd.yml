@@ -42,4 +42,6 @@ jobs:
           exit-code: '1'
       - run: docker push ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
       - run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
-      - run: helm upgrade --install releasepilot deploy/helm/releasepilot --namespace releasepilot --create-namespace --set image.repository=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }} --set image.tag=$IMAGE_TAG --atomic --timeout 5m
+      - run: helm upgrade --install releasepilot deploy/helm/releasepilot --namespace releasepilot --create-namespace --set image.repository=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }} --set image.tag=$IMAGE_TAG --timeout 90s
+      - if: failure()
+        run: kubectl get pods -n releasepilot -o wide; kubectl describe pods -n releasepilot
