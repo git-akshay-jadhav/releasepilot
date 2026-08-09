@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: releasepilot-alerts
+  namespace: releasepilot
+  labels: { release: monitoring }
+spec:
+  groups:
+    - name: releasepilot
+      rules:
+        - alert: ReleasePilotHighErrorRate
+          expr: sum(rate(releasepilot_http_requests_total{status=~"5.."}[5m])) / sum(rate(releasepilot_http_requests_total[5m])) > 0.05
+          for: 5m
+          labels: { severity: warning }
+          annotations: { summary: "ReleasePilot error rate exceeds 5%" }
+        - alert: ReleasePilotNoTraffic
+          expr: absent(up{job="releasepilot"} == 1)
+          for: 10m
+          labels: { severity: critical }
+          annotations: { summary: "Prometheus cannot scrape ReleasePilot" }

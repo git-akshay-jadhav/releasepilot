@@ -1,0 +1,2 @@
+cluster_name = "releasepilot-demo-yourname"
+aws_region   = "ap-south-1"

@@ -1,0 +1,11 @@
+services:
+  releasepilot:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      APP_VERSION: local-compose
+    read_only: true
+    tmpfs:
+      - /tmp

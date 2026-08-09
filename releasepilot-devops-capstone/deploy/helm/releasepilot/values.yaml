@@ -1,0 +1,18 @@
+replicaCount: 2
+image:
+  repository: ghcr.io/your-org/releasepilot
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  port: 80
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits: { cpu: 250m, memory: 256Mi }
+autoscaling:
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+ingress:
+  enabled: false
+  className: nginx
+  host: releasepilot.example.com

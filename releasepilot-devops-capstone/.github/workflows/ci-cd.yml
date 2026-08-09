@@ -1,0 +1,40 @@
+name: CI/CD
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm install
+      - run: npm run lint
+      - run: npm test
+      - run: npm audit --audit-level=high
+  publish-and-deploy:
+    if: github.event_name == 'push'
+    needs: quality
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+      EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with: { role-to-assume: ${{ secrets.AWS_ROLE_ARN }}, aws-region: ${{ env.AWS_REGION }} }
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - run: docker build -t ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+      - uses: aquasecurity/trivy-action@0.28.0
+        with: { image-ref: '${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}', severity: 'HIGH,CRITICAL', exit-code: '1' }
+      - run: docker push ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+      - run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
+      - run: helm upgrade --install releasepilot deploy/helm/releasepilot --namespace releasepilot --create-namespace --set image.repository=${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }} --set image.tag=$IMAGE_TAG --atomic --timeout 5m
