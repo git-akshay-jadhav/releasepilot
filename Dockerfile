@@ -6,6 +6,7 @@ RUN npm install --omit=dev
 FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY src ./src
 RUN addgroup -S app && adduser -S app -G app && chown -R app:app /app
