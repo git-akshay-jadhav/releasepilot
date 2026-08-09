@@ -16,3 +16,5 @@ ingress:
   enabled: false
   className: nginx
   host: releasepilot.example.com
+serviceMonitor:
+  enabled: false
