@@ -22,12 +22,23 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "20.24.3"
   cluster_name = var.cluster_name
-  cluster_version = "1.30"
+  cluster_version = "1.36"
   cluster_endpoint_public_access = true
   vpc_id = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
   enable_irsa = true
   eks_managed_node_groups = { default = { instance_types = ["t3.medium"], min_size = 2, max_size = 4, desired_size = 2 } }
+  access_entries = {
+    github_actions = {
+      principal_arn = aws_iam_role.github_actions.arn
+      policy_associations = {
+        cluster_admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = { type = "cluster" }
+        }
+      }
+    }
+  }
 }
 resource "aws_ecr_repository" "releasepilot" { name = var.ecr_repository; image_scanning_configuration { scan_on_push = true } }
 output "cluster_name" { value = module.eks.cluster_name }

@@ -12,7 +12,7 @@ ReleasePilot is a production-style **release reliability platform**. The sample 
 | Infrastructure as code | Terraform provisions a VPC, EKS cluster, and ECR repository |
 | Kubernetes | Helm chart with rolling updates, probes, autoscaling, resource limits, network policy |
 | Observability | Prometheus metrics, ServiceMonitor, Grafana dashboard, alert rule |
-| Security | Least-privilege runtime, image scanning, reputable workflow actions, secrets through GitHub/AWS |
+| Security | Least-privilege runtime, image scanning, GitHub OIDC (no long-lived AWS keys in GitHub) |
 
 ## Architecture
 
@@ -40,11 +40,12 @@ To run without Docker: `npm install`, `npm test`, then `npm start`.
 
 ## Deploy to AWS
 
-1. In `infra/terraform`, copy `terraform.tfvars.example` to `terraform.tfvars` and set a unique cluster name.
+1. In `infra/terraform`, copy `terraform.tfvars.example` to `terraform.tfvars` and set a unique cluster name. The configuration uses Amazon EKS Kubernetes 1.36, which is currently in standard support.
 2. Run `terraform init && terraform apply`, then configure kubectl with `aws eks update-kubeconfig`.
 3. Install monitoring once: `helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace`.
-4. Set GitHub variables `AWS_REGION`, `EKS_CLUSTER_NAME`, `ECR_REPOSITORY` and secret `AWS_ROLE_ARN` (an OIDC role).
-5. Push to `main`, or use `helm upgrade --install releasepilot deploy/helm/releasepilot -n releasepilot --create-namespace --set image.repository=<ECR_URI> --set image.tag=<TAG>`.
+4. Terraform creates a GitHub OIDC provider and a role restricted to this repository's `main` branch. Copy the `github_actions_role_arn` Terraform output into GitHub as the `AWS_ROLE_ARN` secret.
+5. Set GitHub variables `AWS_REGION`, `EKS_CLUSTER_NAME`, and `ECR_REPOSITORY`.
+6. Push to `main`, or use `helm upgrade --install releasepilot deploy/helm/releasepilot -n releasepilot --create-namespace --set image.repository=<ECR_URI> --set image.tag=<TAG>`.
 
 > **Cost control:** EKS and NAT gateways incur AWS charges. Run `terraform destroy` after the demonstration.
 
