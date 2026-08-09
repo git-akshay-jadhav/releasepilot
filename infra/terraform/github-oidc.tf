@@ -21,12 +21,12 @@ data "aws_iam_policy_document" "github_actions_trust" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Trust GitHub Actions only from this repository. GitHub uses different
-    # OIDC subject formats for branch and environment deployments.
+    # GitHub's OIDC template for this repository embeds immutable owner and
+    # repository IDs. Keep the trust rule limited to that exact identity.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repository}:*"]
+      values   = ["repo:git-akshay-jadhav@136370234/releasepilot@1328490700:*"]
     }
   }
 }
