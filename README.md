@@ -59,4 +59,10 @@ To run without Docker: `npm install`, `npm test`, then `npm start`.
 6. Trigger `GET /ready?fail=true`; explain probes and alerting.
 7. Demonstrate rollback: `helm rollback releasepilot <REVISION> -n releasepilot`.
 
+## Project presentation
+
+The complete capstone presentation, including deployment evidence and architecture screenshots, is available here: [Download the ReleasePilot Capstone Demo (PDF)](ReleasePilot-Capstone-Demo-Updated.pdf).
+
+> The AWS environment was verified during the project demonstration and then intentionally decommissioned to avoid ongoing cloud charges.
+
 See [docs/RUNBOOK.md](docs/RUNBOOK.md) for operations and incident steps.
