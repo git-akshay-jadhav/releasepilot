@@ -1,0 +1,40 @@
+name: MLOps Iris CI
+
+on:
+  push:
+    paths:
+      - "mlops-iris-fastapi/**"
+      - ".github/workflows/mlops-iris-ci.yml"
+  pull_request:
+    paths:
+      - "mlops-iris-fastapi/**"
+      - ".github/workflows/mlops-iris-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: mlops-iris-fastapi
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check src tests
+
+      - name: Train model
+        run: python src/train.py
+
+      - name: Test
+        run: pytest
